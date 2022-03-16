@@ -1,9 +1,12 @@
 #!/usr/bin/env node
-
+require("dotenv").config();
 const { Command, option } = require("commander");
 const ora = require("ora");
 const KEY = process.env.API_KEY;
 const https = require("https");
+const { renderPersonsData } = require("./utils/render");
+
+// const { renderPersonsData } = require("./utils/render.js");
 
 const program = new Command();
 program.version("0.0.1");
@@ -13,31 +16,35 @@ program
   .description("Make a network request to fetch most popular persons")
   .requiredOption("-p, --popular", "Fetch the popular persons")
   .requiredOption("--page <number>")
-  .action(function handleAction() {
+  .action(function getPersons(options) {
     const fetch = {
-      hostname: "api.themoviedb.org",
       href: "https://api.themoviedb.org",
-      path: `/3/person/popular?page=${option.page}&api_key=${KEY}`,
+      hostname: "api.themoviedb.org",
+      path: `/3/person/popular?page=${options.page}&api_key=${KEY}`,
       method: "GET",
     };
-
+    const spinner = ora("Loading popular people").start();
     const req = https.request(fetch, (res) => {
-      let resBody = " ";
+      let responseBody = "";
 
-      res.on("data", function (responseData) {
-        resBody += responseData;
+      res.on("data", function onData(resData) {
+        responseBody += resData;
       });
 
-      res.on("end", function () {
-        let parsedData = JSON.parse(resBody);
-        console.log(parsedData);
-      });
-      res.on("error", () => {
-        ora.fail("Loading failed");
+      res.on("end", function onEnd() {
+        const data = JSON.parse(responseBody);
+
+        renderPersonsData(data.page, data.total_pages, data.results);
+
+        spinner.succeed("Popular Persons - Loaded");
       });
     });
-  });
 
+    req.on("error", () => {
+      ora.fail("Error: Network request fails");
+    });
+    req.end();
+  });
 program
   .command("get-person")
   .description("Make a network request to fetch the data of a single person")
