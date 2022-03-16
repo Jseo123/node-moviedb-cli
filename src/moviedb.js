@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 
-const { Command } = require("commander");
+const { Command, option } = require("commander");
 const ora = require("ora");
 const KEY = process.env.API_KEY;
 const https = require("https");
+
 const program = new Command();
 program.version("0.0.1");
 
@@ -13,7 +14,28 @@ program
   .requiredOption("-p, --popular", "Fetch the popular persons")
   .requiredOption("--page <number>")
   .action(function handleAction() {
-    console.log("hello-world");
+    const fetch = {
+      hostname: "api.themoviedb.org",
+      href: "https://api.themoviedb.org",
+      path: `/3/person/popular?page=${option.page}&api_key=${KEY}`,
+      method: "GET",
+    };
+
+    const req = https.request(fetch, (res) => {
+      let resBody = " ";
+
+      res.on("data", function (responseData) {
+        resBody += responseData;
+      });
+
+      res.on("end", function () {
+        let parsedData = JSON.parse(resBody);
+        console.log(parsedData);
+      });
+      res.on("error", () => {
+        ora.fail("Loading failed");
+      });
+    });
   });
 
 program
