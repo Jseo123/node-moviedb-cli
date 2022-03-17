@@ -45,4 +45,48 @@ function renderPersonsData(page, totalPages, Persons) {
   });
 }
 
-module.exports = { renderPersonsData };
+function renderPerson(person) {
+  log(chalk.white(`\n----------------------------------------`));
+  log(`${chalk.white(`Person:\n`)}`);
+  log(`ID: ${chalk.white(person.id)}`);
+  log(`Name: ${chalk.blue.bold(person.name)}`);
+  log(
+    `Birthday: ${chalk.white(person.birthday)} ${chalk.gray("|")} ${chalk.white(
+      person.place_of_birth
+    )}`
+  );
+
+  if (person.known_for_department === "Acting") {
+    log(`Department: ${chalk.magenta(person.known_for_department)}`);
+  }
+
+  log(`Biography: ${chalk.blue.bold(person.biography)}`);
+
+  if (person.also_known_as.length > 0) {
+    log(`\n`);
+    log(`${chalk.white(`Also known as:\n`)}`);
+
+    person.also_known_as.forEach(function personAKA(alias) {
+      log(chalk.white(alias));
+    });
+  } else {
+    log(`\n`);
+    log(chalk.yellow(`${person.name} doesn’t have any alternate names\n`));
+  }
+}
+
+function renderMoviesData(page, totalPages, movies) {
+  log(chalk.white(`\n----------------------------------------`));
+  log(chalk.white(`page: ${page} of: ${totalPages}`));
+
+  movies.forEach((movie) => {
+    log(chalk.white(`----------------------------------------`));
+    log(`\n`);
+    log(`${chalk.white(`Movie:\n`)}`);
+    log(`ID: ${chalk.white.bold(movie.id)}`);
+    log(`Title: ${chalk.blue.bold(movie.title)}`);
+    log(`Release Date: ${chalk.white.bold(movie.release_date)}`);
+  });
+}
+
+module.exports = { renderPersonsData, renderPerson, renderMoviesData };

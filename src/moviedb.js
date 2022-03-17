@@ -4,7 +4,11 @@ const { Command, option } = require("commander");
 const ora = require("ora");
 const KEY = process.env.API_KEY;
 const https = require("https");
-const { renderPersonsData } = require("./utils/render");
+const {
+  renderPersonsData,
+  renderPerson,
+  renderMoviesData,
+} = require("./utils/render");
 
 // const { renderPersonsData } = require("./utils/render.js");
 
@@ -53,7 +57,7 @@ program
     const fetch = {
       href: "https://api.themoviedb.org",
       hostname: "api.themoviedb.org",
-      path: `/3/person/${options.id}&api_key=${KEY}`,
+      path: `/3/person/${options.id}?api_key=${KEY}`,
       method: "GET",
     };
     const spinner = ora("Loading popular people").start();
@@ -66,7 +70,7 @@ program
 
       res.on("end", function onEnd() {
         const data = JSON.parse(responseBody);
-        console.log(data);
+        renderPerson(data);
 
         spinner.succeed("Person data loaded");
       });
@@ -81,9 +85,47 @@ program
 program
   .command("get-movies")
   .description("Make a network request to fetch movies")
-  .action(function handleAction() {
-    const spinner = ora("Fetching the popular person's data...").start();
-    console.log("hello-world");
+  .requiredOption("--page <number>", "The page of movies data results to fetch")
+  .option("-p, --popular", "Fetch the popular movies")
+  .option("-n, --now-playing", "Fetch the movies that are playing now")
+  .action(function getMovies(options) {
+    let path = "";
+    if (options.nowPlaying) {
+      path = `/3/movie/now_playing?page=${options.page}&api_key=${KEY}`;
+    } else {
+      path = `/3/movie/popular?page=${options.page}&api_key=${KEY}`;
+    }
+
+    const fetch = {
+      href: "https://api.themoviedb.org",
+      hostname: "api.themoviedb.org",
+      path: path,
+      method: "GET",
+    };
+
+    const spinner = ora("Loading popular people").start();
+    const req = https.request(fetch, (res) => {
+      let responseBody = "";
+
+      res.on("data", function onData(resData) {
+        responseBody += resData;
+      });
+
+      res.on("end", function onEnd() {
+        const data = JSON.parse(responseBody);
+        renderMoviesData(data.page, data.total_pages, data.results);
+        if (options.nowPlaying) {
+          spinner.succeed("Recent released movies loaded");
+        } else {
+          spinner.succeed("Popular movies loaded");
+        }
+      });
+    });
+
+    req.on("error", () => {
+      ora.error("Error: Network request fails");
+    });
+    req.end();
   });
 
 program
