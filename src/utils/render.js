@@ -2,16 +2,16 @@ const chalk = require("chalk");
 const { options } = require("node-notifier");
 const log = console.log;
 
-function renderPersonsData(page, totalPages, person) {
+function renderPersonsData(page, totalPages, Persons) {
   if (totalPages > page) {
     log(chalk.white("\n\n----------------------------------------"));
     log(chalk.white(`page: ${page} of: ${totalPages}`));
   }
 
-  person.forEach((person) => {
+  Persons.forEach((person) => {
     log(chalk.white("\n\n----------------------------------------"));
     log(chalk.white("\n"));
-    log(chalk.white(`${person}:\n `));
+    log(`${chalk.white(`Person:\n`)}`);
     log(`ID: ${chalk.white(person.id)}`);
     log(`Name: ${chalk.blue.bold(person.name)}`);
 

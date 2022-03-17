@@ -48,8 +48,34 @@ program
 program
   .command("get-person")
   .description("Make a network request to fetch the data of a single person")
-  .action(function handleAction() {
-    console.log("hello-world");
+  .requiredOption("-i, --id <number>", "The id of the person")
+  .action(function getPerson(options) {
+    const fetch = {
+      href: "https://api.themoviedb.org",
+      hostname: "api.themoviedb.org",
+      path: `/3/person/${options.id}&api_key=${KEY}`,
+      method: "GET",
+    };
+    const spinner = ora("Loading popular people").start();
+    const req = https.request(fetch, (res) => {
+      let responseBody = "";
+
+      res.on("data", function onData(resData) {
+        responseBody += resData;
+      });
+
+      res.on("end", function onEnd() {
+        const data = JSON.parse(responseBody);
+        console.log(data);
+
+        spinner.succeed("Person data loaded");
+      });
+    });
+
+    req.on("error", () => {
+      ora.fail("Error: Network request fails");
+    });
+    req.end();
   });
 
 program
